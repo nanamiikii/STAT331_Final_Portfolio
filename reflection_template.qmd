@@ -1,6 +1,6 @@
 ---
 title: "STAT 331 Portfolio"
-author: "Your Name Goes Here"
+author: "Emi Degembe"
 format: 
   html: 
     self-contained: true
@@ -9,9 +9,10 @@ editor: visual
 execute: 
   eval: false
   echo: true
+theme: "darkly"
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an __.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an \_A-\_.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -23,7 +24,8 @@ execute:
 
 ```{r}
 #| label: wd-1-csv
-
+# lab 7 question 1
+df_fish <- read_csv(here::here("data", "BlackfootFish.csv"))
 ```
 
 -   `xlsx`
@@ -31,6 +33,16 @@ execute:
 ```{r}
 #| label: wd-1-xlsx
 
+# from Check-in 2.3
+agesxl <- read_xlsx(
+  path = here::here(
+    "check-ins",
+    "2.1-loading-data",
+    "Ages_Data",
+    "ages.xlsx"
+  ),
+  sheet = "ages"
+)
 ```
 
 -   `txt`
@@ -38,6 +50,16 @@ execute:
 ```{r}
 #| label: wd-1-txt
 
+# from check-in 2.3
+ages_mystery <- read_delim(
+  file = here::here(
+    "Week 2",
+    "Check-ins",
+    "Ages_Data",
+    "ages_mystery.txt"
+  ),
+  delim = "|"
+)
 ```
 
 **WD-2: I can select necessary columns from a dataset.**
@@ -45,6 +67,13 @@ execute:
 ```{r}
 #| label: wd-2
 
+# lab 5 top half
+
+# modified the mutate from an integer to a lubridate function.
+crime_scene_report |>
+  mutate(date = ymd(date)) |>
+  filter(city == "SQL City", type == "murder", date == "2018-01-15") |>
+  select(description)
 ```
 
 **WD-3: I can filter rows from a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -54,6 +83,13 @@ execute:
 ```{r}
 #| label: wd-3-numeric
 
+# lab 5 (old original submission)
+facebook_event_checkin |>
+  filter(event_name == "SQL Symphony Concert", str_starts(date, "201712")) |>
+  group_by(person_id) |>
+  summarize(checkIns = n()) |>
+  right_join(findingFemales, by = "person_id") |>
+  filter(checkIns == 3, if_all(everything(), ~ !is.na(.)))
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
@@ -61,6 +97,17 @@ execute:
 ```{r}
 #| label: wd-3-string
 
+# lab 5
+witnesses <- person |> # first witness criteria | second witness criteria
+  filter(
+    (
+      address_street_name == "Northwestern Dr" &
+        address_number == max(address_number)) |
+      (str_detect(name, "Annabel") &
+        address_street_name == "Franklin Ave")
+  )
+
+witnesses
 ```
 
 -   factor
@@ -68,6 +115,23 @@ execute:
 ```{r}
 #| label: wd-3-factor
 
+# lab 5, last part
+# modified hair_color to be stored as a factor instead of a character since
+# hair color is a concrete categorical value that does not change:
+# also renamed findingFemales to femaleSuspects
+femaleSuspects <- drivers_license |>
+  rename(license_id = id) |>
+  mutate(hair_color = as.factor(hair_color)) |>
+  filter(
+    65 <= height & height <= 67,
+    hair_color == "red",
+    gender == "female",
+    car_make == "Tesla",
+    car_model == "Model S"
+  ) |>
+  left_join(person, by = "license_id") |>
+  left_join(income, by = "ssn") |>
+  select(id, name, annual_income)
 ```
 
 -   date (example must use functions from **lubridate**)
@@ -75,6 +139,12 @@ execute:
 ```{r}
 #| label: wd-3-date
 
+# from lab 5 (revised)
+
+crime_scene_report |>
+  mutate(date = ymd(date)) |>
+  filter(city == "SQL City", type == "murder", date == "2018-01-15") |>
+  select(description)
 ```
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -84,6 +154,27 @@ execute:
 ```{r}
 #| label: wd-4-numeric
 
+# lab 7 question 4
+# sources:
+# help(range)
+
+rescale_01 <- function(vec) {
+  # input validation
+  case_when(
+    !is.numeric(vec) ~ "inputted vector is not a numeric data type.",
+    length(vec) <= 1 ~ "inputted vector must contain more than one element."
+  )
+
+  range_val <- range(vec, na.rm = TRUE)
+  # range_val[1] = min, range_val[2] = max
+  rescaled <- (vec - range_val[1]) / (range_val[2] - range_val[1])
+  return(rescaled)
+}
+
+# testing the function to make sure it works
+df_fish |>
+  select(weight) |>
+  mutate(weight = rescale_01(weight))
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
@@ -91,6 +182,32 @@ execute:
 ```{r}
 #| label: wd-4-string
 
+# lab 9 question 2
+
+# This code has been revised, so there is a new variable created named
+# str correct, which removed the need for the names_glue function, 
+# reducing the need for an additional background process so overall, 
+# more efficient.
+
+# sources:
+# help(enframe)
+# https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
+# https://chatgpt.com/share/6743b343-b76c-8013-a0ec-98085a996580
+
+dfResults <- enframe(results, name = "simulation_no", value = "nCorrect")
+
+realResults <- dfResults |>
+  count(nCorrect) |>
+  mutate(
+    props = n / sum(n),
+    strCorrect = str_c(nCorrect, " correct")
+  ) |>
+  pivot_wider(
+    names_from = strCorrect,
+    values_from = props
+  ) |>
+  select(-c(n, nCorrect)) |>
+  summarize(across(everything(), ~ first(na.omit(.))))
 ```
 
 -   factor (example must use functions from **forcats**)
@@ -98,6 +215,20 @@ execute:
 ```{r}
 #| label: wd-4-factor
 
+# lab 4 question 6
+plot_childcare <- ca_childcare |>
+  pivot_longer(
+    cols = starts_with("mc_"),
+    names_to = "type",
+    values_to = "actual"
+  ) |>
+  mutate(
+    type = case_when(
+      type == "mc_infant" ~ "infant",
+      type == "mc_toddler" ~ "toddler",
+      type == "mc_preschool" ~ "preK"
+    )
+  )
 ```
 
 -   date (example must use functions from **lubridate**)
@@ -105,6 +236,26 @@ execute:
 ```{r}
 #| label: wd-4-date
 
+# lab 5
+# I revised this code to change the data datatype so the month and year could be called.
+# This may not necessarily be more efficient because the tables were
+# well formatted, but in other cases, 
+# this could be more efficient when the month and year are not next to each other and/or if 
+# the dates are in various formats.
+# findingFemales was renamed to femaleSuspects to improve clarity on what
+# that table is
+
+facebook_event_checkin |>
+  mutate(date = ymd(date)) |>
+  filter(
+    event_name == "SQL Symphony Concert",
+    month(date) == 12,
+    year(date) == 2017
+  ) |>
+  group_by(person_id) |>
+  summarize(checkIns = n()) |>
+  right_join(femaleSuspects, join_by(person_id == id)) |>
+  filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
 ```
 
 **WD-5: I can use mutating joins to combine multiple dataframes.**
@@ -114,6 +265,15 @@ execute:
 ```{r}
 #| label: wd-5-left
 
+# lab 4 problem 2
+ca_childcare <- counties |>
+  filter(
+    state_abbreviation == "CA",
+    state_name == "California"
+  ) |>
+  left_join(childcare_costs, by = "county_fips_code")
+
+ca_childcare
 ```
 
 -   `right_join()`
@@ -121,6 +281,18 @@ execute:
 ```{r}
 #| label: wd-5-right
 
+# lab 5 (modified)
+facebook_event_checkin |>
+  mutate(date = ymd(date)) |>
+  filter(
+    event_name == "SQL Symphony Concert",
+    month(date) == 12,
+    year(date) == 2017
+  ) |>
+  group_by(person_id) |>
+  summarize(checkIns = n()) |>
+  right_join(femaleSuspects, join_by(person_id == id)) |>
+  filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
 ```
 
 -   `inner_join()`
@@ -128,13 +300,14 @@ execute:
 ```{r}
 #| label: wd-5-inner
 
-```
+# lab 5
+annabel_gym_checkin <- get_fit_now_member |>
+  semi_join(witnesses, by = "name") |>
+  inner_join(get_fit_now_check_in,
+    by = c("id" = "membership_id")
+  )
 
--   `full_join()`
-
-```{r}
-#| label: wd-5-full
-
+annabel_gym_checkin
 ```
 
 **WD-6: I can use filtering joins to filter rows from a dataframe.**
@@ -144,6 +317,14 @@ execute:
 ```{r}
 #| label: wd-6-semi
 
+# lab 5
+annabel_gym_checkin <- get_fit_now_member |>
+  semi_join(witnesses, by = "name") |>
+  inner_join(get_fit_now_check_in,
+    by = c("id" = "membership_id")
+  )
+
+annabel_gym_checkin
 ```
 
 -   `anti_join()`
@@ -151,6 +332,7 @@ execute:
 ```{r}
 #| label: wd-6-anti
 
+# no response
 ```
 
 **WD-7: I can pivot dataframes from long to wide and visa versa**
@@ -160,6 +342,20 @@ execute:
 ```{r}
 #| label: wd-7-long
 
+# revised lab 4 problem 6, changed the need for 2 tables and condensed into 1.
+plot_childcare <- ca_childcare |>
+  pivot_longer(
+    cols = starts_with("mc_"),
+    names_to = "type",
+    values_to = "actual"
+  ) |>
+  mutate(
+    type = case_when(
+      type == "mc_infant" ~ "infant",
+      type == "mc_toddler" ~ "toddler",
+      type == "mc_preschool" ~ "preK"
+    )
+  )
 ```
 
 -   `pivot_wider()`
@@ -167,13 +363,33 @@ execute:
 ```{r}
 #| label: wd-7-wide
 
+# revised code from lab 4 question 4: changed filter to use %in% and changed to arrange() function at the end.
+
+median_incomes <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(
+    median_income = median(mhi_2018, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = study_year,
+    values_from = median_income,
+    names_prefix = "Median Income "
+  ) |>
+  arrange("Median Income 2018")
 ```
 
 ## Reproducibility
 
 **R-1: I can create professional looking, reproducible analyses using RStudio projects, Quarto documents, and the here package.**
 
-I've done this in the following provided assignments:
+I've done this in the following provided assignments: 
+
+Lab 9, 8, 7, 5, 4, 2
+Challenge 2, 7
+
+I am proud of my formatting in lab 5, but have demonstrated proper formatting in this portfolio as well, using the linting package **styler** to ensure that everything is formatted properly in the tidyverse style. [link](https://styler.r-lib.org/)
 
 **R-2: I can write well documented and tidy code.**
 
@@ -182,6 +398,38 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: r-2-1
 
+#| fig-cap: "RBT: rainbow trout WBT: westslope cutthroat trout"
+
+# challenge 7
+calculate_cond_idx(df_fish) |>
+  group_by(year, species, trip) |>
+  summarize(mean_cond_idx = mean(condition_index, na.rm = TRUE), .groups = "drop") |>
+  ggplot(
+    aes(
+      x = year,
+      y = mean_cond_idx,
+      color = fct_reorder(
+        .f = species,
+        .x = mean_cond_idx,
+        .desc = TRUE
+      )
+    )
+  ) +
+  facet_wrap(~trip, labeller = as_labeller(function(trip) paste("Trip", trip))) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Mean Condition Index of Fish by Species",
+    x = "Year",
+    y = "",
+    color = "species"
+  ) +
+  theme(
+    aspect.ratio = 1,
+    axis.text.x = element_text(size = 8)
+  ) +
+  scale_x_continuous(limits = c(1988, 2006), breaks = (seq(1980, 2008, 2))) +
+  scale_color_manual(values = c("#68B893", "#FF7C68", "#007C74", "#F7D359"))
 ```
 
 -   Example of **dplyr** pipeline
@@ -189,6 +437,22 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: r-2-2
 
+# revised code from lab 4 question 4: changed filter to use %in% and changed
+# to arrange() function at the end.
+
+median_incomes <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(
+    median_income = median(mhi_2018, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = study_year,
+    values_from = median_income,
+    names_prefix = "Median Income "
+  ) |>
+  arrange("Median Income 2018")
 ```
 
 -   Example of function formatting
@@ -196,6 +460,19 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: r-2-3
 
+# lab 7 question 8
+# sources:
+# https://chatgpt.com/share/673139f3-590c-8013-934d-40567b76d33c
+
+rescale_column <- function(df, cNames) {
+  # validation checking
+  stopifnot(is.data.frame(df), all(cNames %in% colnames(df)))
+
+  rescaled <- df |>
+    mutate(across(.cols = {{ cNames }}, .fns = ~ rescale_01(.x)))
+
+  return(rescaled)
+}
 ```
 
 **R-3: I can write robust programs that are resistant to changes in inputs.**
@@ -205,6 +482,15 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: r-3-example
 
+# lab 4 question 5
+ca_childcare |>
+  filter(study_year == 2018) |>
+  group_by(region) |>
+  summarize(
+    median_cost = median(mc_infant, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  slice_min(median_cost)
 ```
 
 -   Example of function stops
@@ -212,6 +498,20 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: r-3-function-stops
 
+# lab 7 question 8
+
+# sources:
+# https://chatgpt.com/share/673139f3-590c-8013-934d-40567b76d33c
+
+rescale_column <- function(df, cNames) {
+  # validation checking
+  stopifnot(is.data.frame(df), all(cNames %in% colnames(df)))
+
+  rescaled <- df |>
+    mutate(across(.cols = {{ cNames }}, .fns = ~ rescale_01(.x)))
+
+  return(rescaled)
+}
 ```
 
 ## Data Visualization & Summarization
@@ -223,6 +523,26 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-1-num
 
+# from lab 4 question 7
+# sources:
+# https://ggplot2.tidyverse.org/articles/ggplot2.html?q=scatterplot#layers
+# https://scales.r-lib.org/reference/label_dollar.html
+library(scales)
+
+# I modified this code by adding the annotation to the code
+ca_childcare |>
+  ggplot(aes(x = mhi_2018, y = mc_infant)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = lm) +
+  labs(
+    title = "Median Income and Weekly Median Price for Center-Based Children in California",
+    subtitle = "Dollars adjusted for 2018 USD",
+    x = "Median Household Income",
+    y = ""
+  ) +
+  annotate("text", x = 50000, y = 400, label = "y == 2.241 * (10 ^ 3) * x + 131.7", parse = TRUE) +
+  scale_x_continuous(labels = label_dollar()) +
+  theme(axis.text.x = element_text(size = 8))
 ```
 
 -   at least one numeric variable and one categorical variable
@@ -230,6 +550,34 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-2-num-cat
 
+# from challenge 2, I changed the axis so that there is no need to tilt any heads
+palette <- c(
+  "#1d3537", "#4c769d", "#a7cedc",
+  "#8abd91", "#c4bc89", "#c99955",
+  "#d7873e", "#db6243", "#d83a46"
+)
+
+ggplot(
+  data = surveys,
+  mapping = aes(
+    x = species,
+    y = weight,
+    color = genus
+  )
+) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(
+    alpha = 0.15,
+    aes(color = genus)
+  ) +
+  scale_color_manual(values = palette) +
+  labs(
+    x = "species name",
+    y = "weight (g)",
+    title = "distribution of weight in grams by species"
+  ) +
+  coord_flip() +
+  theme(axis.text.y = element_text(angle = 0))
 ```
 
 -   at least two categorical variables
@@ -237,13 +585,61 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-2-cat
 
+# lab 7
+# This plot was made to compare the number catches of each species based on trip and
+# section the fisher was in to see if there is some visual difference between the
+# trips, species, and section.
+
+df_fish |>
+  mutate(trip = factor(paste("Trip ", trip))) |>
+  ggplot(aes(x = trip, fill = species)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~section, labeller = as_labeller(function(trip) paste("Section", trip))) +
+  labs(
+    title = "Count of Each Species Caught by Trip",
+    x = "",
+    y = "",
+    color = "Species"
+  ) +
+  scale_fill_manual(values = c("#68B893", "#FF7C68", "#007C74", "#F7D359"))
 ```
 
 -   dates (timeseries plot)
 
 ```{r}
 #| label: dvs-2-date
+#| fig-cap: "RBT: rainbow trout WBT: westslope cutthroat trout"
 
+# challenge 7
+calculate_cond_idx(df_fish) |>
+  group_by(year, species, trip) |>
+  summarize(mean_cond_idx = mean(condition_index, na.rm = TRUE), .groups = "drop") |>
+  ggplot(
+    aes(
+      x = year,
+      y = mean_cond_idx,
+      color = fct_reorder(
+        .f = species,
+        .x = mean_cond_idx,
+        .desc = TRUE
+      )
+    )
+  ) +
+  facet_wrap(~trip, labeller = as_labeller(function(trip) paste("Trip", trip))) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Mean Condition Index of Fish by Species",
+    x = "Year",
+    y = "",
+    color = "species"
+  ) +
+  theme(
+    aspect.ratio = 1,
+    axis.text.x = element_text(size = 8)
+  ) +
+  scale_x_continuous(limits = c(1988, 2006), breaks = (seq(1980, 2008, 2))) +
+  scale_color_manual(values = c("#68B893", "#FF7C68", "#007C74", "#F7D359"))
 ```
 
 **DVS-2: I use plot modifications to make my visualization clear to the reader.**
@@ -253,6 +649,34 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-2-1
 
+# from challenge 2, I changed the axis so that there is no need to tilt any heads
+palette <- c(
+  "#1d3537", "#4c769d", "#a7cedc",
+  "#8abd91", "#c4bc89", "#c99955",
+  "#d7873e", "#db6243", "#d83a46"
+)
+
+ggplot(
+  data = surveys,
+  mapping = aes(
+    x = species,
+    y = weight,
+    color = genus
+  )
+) +
+  geom_boxplot(outlier.alpha = 0) +
+  geom_jitter(
+    alpha = 0.15,
+    aes(color = genus)
+  ) +
+  scale_color_manual(values = palette) +
+  labs(
+    x = "species name",
+    y = "weight (g)",
+    title = "distribution of weight in grams by species"
+  ) +
+  coord_flip() +
+  theme(axis.text.y = element_text(angle = 0))
 ```
 
 -   I can modify the text in my plot to be more readable
@@ -260,13 +684,65 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-2-2
 
+# from lab 4 question 7
+# sources:
+# https://ggplot2.tidyverse.org/articles/ggplot2.html?q=scatterplot#layers
+# https://scales.r-lib.org/reference/label_dollar.html
+library(scales)
+
+# I modified this code by adding the annotation to the code
+ca_childcare |>
+  ggplot(aes(x = mhi_2018, y = mc_infant)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = lm) +
+  labs(
+    title = "Median Income and Weekly Median Price for Center-Based Children in California",
+    subtitle = "Dollars adjusted for 2018 USD",
+    x = "Median Household Income",
+    y = ""
+  ) +
+  annotate("text", x = 50000, y = 400, label = "y == 2.241 * (10 ^ 3) * x + 131.7", parse = TRUE) +
+  scale_x_continuous(labels = label_dollar()) +
+  theme(axis.text.x = element_text(size = 8))
 ```
 
 -   I can reorder my legend to align with the colors in my plot
 
 ```{r}
 #| label: dvs-2-3
+#| fig-cap: "RBT: rainbow trout WBT: westslope cutthroat trout"
 
+# challenge 7
+calculate_cond_idx(df_fish) |>
+  group_by(year, species, trip) |>
+  summarize(mean_cond_idx = mean(condition_index, na.rm = TRUE), .groups = "drop") |>
+  ggplot(
+    aes(
+      x = year,
+      y = mean_cond_idx,
+      color = fct_reorder(
+        .f = species,
+        .x = mean_cond_idx,
+        .desc = TRUE
+      )
+    )
+  ) +
+  facet_wrap(~trip, labeller = as_labeller(function(trip) paste("Trip", trip))) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Mean Condition Index of Fish by Species",
+    x = "Year",
+    y = "",
+    color = "species"
+  ) +
+  theme(
+    aspect.ratio = 1,
+    axis.text.x = element_text(size = 8)
+  ) +
+  scale_x_continuous(limits = c(1988, 2006), breaks = (seq(1980, 2008, 2))) +
+  scale_color_manual(values = c("#68B893", "#FF7C68", "#007C74", "#F7D359"))
+# color palette based off animal crossing
 ```
 
 **DVS-3: I show creativity in my visualizations**
@@ -275,7 +751,38 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-3-1
+#| fig-cap: "RBT: rainbow trout WBT: westslope cutthroat trout"
 
+calculate_cond_idx(df_fish) |>
+  group_by(year, species, trip) |>
+  summarize(mean_cond_idx = mean(condition_index, na.rm = TRUE), .groups = "drop") |>
+  ggplot(
+    aes(
+      x = year,
+      y = mean_cond_idx,
+      color = fct_reorder(
+        .f = species,
+        .x = mean_cond_idx,
+        .desc = TRUE
+      )
+    )
+  ) +
+  facet_wrap(~trip, labeller = as_labeller(function(trip) paste("Trip", trip))) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Mean Condition Index of Fish by Species",
+    x = "Year",
+    y = "",
+    color = "species"
+  ) +
+  theme(
+    aspect.ratio = 1,
+    axis.text.x = element_text(size = 8)
+  ) +
+  scale_x_continuous(limits = c(1988, 2006), breaks = (seq(1980, 2008, 2))) +
+  scale_color_manual(values = c("#68B893", "#FF7C68", "#007C74", "#F7D359"))
+# color palette based off animal crossing
 ```
 
 -   I can use annotations
@@ -283,13 +790,66 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-3-2
 
+# from lab 4 question 7
+# sources:
+# https://ggplot2.tidyverse.org/articles/ggplot2.html?q=scatterplot#layers
+# https://scales.r-lib.org/reference/label_dollar.html
+library(scales)
+
+# I modified this code by adding the annotation to the code
+ca_childcare |>
+  ggplot(aes(x = mhi_2018, y = mc_infant)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = lm) +
+  labs(
+    title = "Median Income and Weekly Median Price for Center-Based Children in California",
+    subtitle = "Dollars adjusted for 2018 USD",
+    x = "Median Household Income",
+    y = ""
+  ) +
+  annotate("text", x = 50000, y = 400, label = "y == 2.241 * (10 ^ 3) * x + 131.7", parse = TRUE) +
+  scale_x_continuous(labels = label_dollar()) +
+  theme(axis.text.x = element_text(size = 8))
 ```
 
 -   I can be creative...
 
 ```{r}
 #| label: dvs-3-3
+#| fig-cap: "RBT: rainbow trout WBT: westslope cutthroat trout"
 
+# challenge 7 (There was a figure caption added to this,
+# #| fig-cap: "RBT: rainbow trout WBT: westslope cutthroat trout")
+calculate_cond_idx(df_fish) |>
+  group_by(year, species, trip) |>
+  summarize(mean_cond_idx = mean(condition_index, na.rm = TRUE), .groups = "drop") |>
+  ggplot(
+    aes(
+      x = year,
+      y = mean_cond_idx,
+      color = fct_reorder(
+        .f = species,
+        .x = mean_cond_idx,
+        .desc = TRUE
+      )
+    )
+  ) +
+  facet_wrap(~trip, labeller = as_labeller(function(trip) paste("Trip", trip))) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Mean Condition Index of Fish by Species",
+    x = "Year",
+    y = "",
+    color = "species"
+  ) +
+  theme(
+    aspect.ratio = 1,
+    axis.text.x = element_text(size = 8)
+  ) +
+  scale_x_continuous(limits = c(1988, 2006), breaks = (seq(1980, 2008, 2))) +
+  scale_color_manual(values = c("#68B893", "#FF7C68", "#007C74", "#F7D359"))
+# color palette based off animal crossing
 ```
 
 **DVS-4: I can calculate numerical summaries of variables.**
@@ -299,6 +859,28 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-4-summarize
 
+# lab 9 question 2 (revised)
+# sources:
+# help(enframe)
+# https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
+# https://chatgpt.com/share/6743b343-b76c-8013-a0ec-98085a996580
+
+dfResults <- enframe(results, name = "simulation_no", value = "nCorrect")
+
+realResults <- dfResults |>
+  count(nCorrect) |>
+  mutate(
+    props = n / sum(n),
+    strCorrect = str_c(nCorrect, " babies")
+  ) |>
+  pivot_wider(
+    names_from = strCorrect,
+    values_from = props
+  ) |>
+  select(-c(n, nCorrect)) |>
+  summarize(across(everything(), ~ first(na.omit(.))))
+
+realResults
 ```
 
 -   Example using `across()`
@@ -306,6 +888,16 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-4-across
 
+# source: I asked an upperclassmen who took this class last year and they described
+# in pretty great detail what to put in the across() function (it was verbal).
+# I revised this table to look a bit better by changing the column names and using
+# Kable to make it look cleaner and add a title to improve clarity.
+df_fish |>
+  summarize(across(trip:species, list(~ sum(is.na(.x))))) |>
+  rename_with(~ str_remove(., "_1")) |>
+  kable(
+    caption = "Number of Missing Values by Column"
+  )
 ```
 
 **DVS-5: I can find summaries of variables across multiple groups.**
@@ -315,6 +907,28 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-5-1
 
+# lab 9 question 2 (revised)
+# sources:
+# help(enframe)
+# https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
+# https://chatgpt.com/share/6743b343-b76c-8013-a0ec-98085a996580
+
+dfResults <- enframe(results, name = "simulation_no", value = "nCorrect")
+
+realResults <- dfResults |>
+  count(nCorrect) |>
+  mutate(
+    props = n / sum(n),
+    strCorrect = str_c(nCorrect, " babies")
+  ) |>
+  pivot_wider(
+    names_from = strCorrect,
+    values_from = props
+  ) |>
+  select(-c(n, nCorrect)) |>
+  summarize(across(everything(), ~ first(na.omit(.))))
+
+realResults
 ```
 
 -   Example 2
@@ -322,6 +936,27 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-5-2
 
+# lab 8 question 1
+
+# https://www.projectpro.io/recipes/check-data-type-r
+# https://tibble.tidyverse.org/
+# https://bookdown.org/yihui/rmarkdown-cookbook/kable.html
+
+surveyVariables <- surveys |>
+  map_chr(~ class(.x))
+
+# creating a tibble with the names vector and dataType vector
+table <- tibble(
+  variable = names(surveyVariables), dataType = surveyVariables
+)
+
+# challenge code:
+table |>
+  kable(
+    caption = "Survey Variable Data Types",
+    col.names = c("Variable Name", "Data Type"),
+    align = c("l", "l")
+  )
 ```
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
@@ -331,6 +966,71 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-6-1
 
+# lab 9 question 2 (revised)
+# sources:
+# help(enframe)
+# https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
+# https://chatgpt.com/share/6743b343-b76c-8013-a0ec-98085a996580
+
+dfResults <- enframe(results, name = "simulation_no", value = "nCorrect")
+
+realResults <- dfResults |>
+  count(nCorrect) |>
+  mutate(
+    props = n / sum(n),
+    strCorrect = str_c(nCorrect, " babies")
+  ) |>
+  pivot_wider(
+    names_from = strCorrect,
+    values_from = props
+  ) |>
+  select(-c(n, nCorrect)) |>
+  summarize(across(everything(), ~ first(na.omit(.))))
+
+realResults
+
+# challenge 9: spicing up the table
+# reference table: https://rpubs.com/kaustav/table_contest_2020
+
+# I have revised this table from formatting the proportions as numbers
+# to percentages using a gt package function (fmt_percent)
+gt(realResults) |>
+  tab_header(
+    title = "Proportion of Babies Correctly Assigned per Simulation",
+    subtitle = "Simulation Results with n = 10000"
+  ) |>
+  opt_table_font(
+    font = google_font("Roboto Mono"),
+    size = px(14)
+  ) |>
+  tab_style(
+    style = cell_fill(
+      color = "lightblue3"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_text(
+      color = "steelblue4"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_borders(
+      sides = "all",
+      color = "black",
+      weight = px(1)
+    ),
+    locations = cells_body()
+  ) |>
+  fmt_percent(
+    columns = everything(),
+    decimals = 2
+  ) |>
+  tab_options(
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.color = "black"
+  )
 ```
 
 -   Example 2
@@ -338,6 +1038,27 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-6-2
 
+# lab 8 question 1
+
+# https://www.projectpro.io/recipes/check-data-type-r
+# https://tibble.tidyverse.org/
+# https://bookdown.org/yihui/rmarkdown-cookbook/kable.html
+
+surveyVariables <- surveys |>
+  map_chr(~ class(.x))
+
+# creating a tibble with the names vector and dataType vector
+table <- tibble(
+  variable = names(surveyVariables), dataType = surveyVariables
+)
+
+# challenge code:
+table |>
+  kable(
+    caption = "Survey Variable Data Types",
+    col.names = c("Variable Name", "Data Type"),
+    align = c("l", "l")
+  )
 ```
 
 **DVS-7: I show creativity in my tables.**
@@ -347,6 +1068,48 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-7-1
 
+# challenge 9: spicing up the table
+# reference table: https://rpubs.com/kaustav/table_contest_2020
+
+# I have revised this table from formatting the proportions as numbers
+# to percentages using a gt package function (fmt_percent)
+gt(realResults) |>
+  tab_header(
+    title = "Proportion of Babies Correctly Assigned per Simulation",
+    subtitle = "Simulation Results with n = 10000"
+  ) |>
+  opt_table_font(
+    font = google_font("Roboto Mono"),
+    size = px(14)
+  ) |>
+  tab_style(
+    style = cell_fill(
+      color = "lightblue3"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_text(
+      color = "steelblue4"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_borders(
+      sides = "all",
+      color = "black",
+      weight = px(1)
+    ),
+    locations = cells_body()
+  ) |>
+  fmt_percent(
+    columns = everything(),
+    decimals = 2
+  ) |>
+  tab_options(
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.color = "black"
+  )
 ```
 
 -   Example 2
@@ -354,6 +1117,28 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-7-2
 
+# lab 8 question 1
+
+# https://www.projectpro.io/recipes/check-data-type-r
+# https://tibble.tidyverse.org/
+# https://bookdown.org/yihui/rmarkdown-cookbook/kable.html
+
+
+surveyVariables <- surveys |>
+  map_chr(~ class(.x))
+
+# creating a tibble with the names vector and dataType vector
+table <- tibble(
+  variable = names(surveyVariables), dataType = surveyVariables
+)
+
+# challenge code:
+table |>
+  kable(
+    caption = "Survey Variable Data Types",
+    col.names = c("Variable Name", "Data Type"),
+    align = c("l", "l")
+  )
 ```
 
 ## Program Efficiency
@@ -365,6 +1150,28 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-1-one-call
 
+# lab 9 question 2 (revised)
+# sources:
+# help(enframe)
+# https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
+# https://chatgpt.com/share/6743b343-b76c-8013-a0ec-98085a996580
+
+dfResults <- enframe(results, name = "simulation_no", value = "nCorrect")
+
+realResults <- dfResults |>
+  count(nCorrect) |>
+  mutate(
+    props = n / sum(n),
+    strCorrect = str_c(nCorrect, " babies")
+  ) |>
+  pivot_wider(
+    names_from = strCorrect,
+    values_from = props
+  ) |>
+  select(-c(n, nCorrect)) |>
+  summarize(across(everything(), ~ first(na.omit(.))))
+
+realResults
 ```
 
 -   `across()`
@@ -372,6 +1179,29 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-1-across
 
+
+# lab 9 question 2 (revised)
+# sources:
+# help(enframe)
+# https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
+# https://chatgpt.com/share/6743b343-b76c-8013-a0ec-98085a996580
+
+dfResults <- enframe(results, name = "simulation_no", value = "nCorrect")
+
+realResults <- dfResults |>
+  count(nCorrect) |>
+  mutate(
+    props = n / sum(n),
+    strCorrect = str_c(nCorrect, " babies")
+  ) |>
+  pivot_wider(
+    names_from = strCorrect,
+    values_from = props
+  ) |>
+  select(-c(n, nCorrect)) |>
+  summarize(across(everything(), ~ first(na.omit(.))))
+
+realResults
 ```
 
 -   `map()` functions
@@ -379,6 +1209,18 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-1-map-1
 
+# lab 8 question 4
+fishTable <- tibble(
+  variable = names(fish),
+  na_count = fish |>
+    map_int(~ sum(is.na(.)))
+)
+
+fishTable |>
+  kable(
+    caption = "Missing Values by Variable",
+    align = "l"
+  )
 ```
 
 **PE-2: I can write functions to reduce repetition in my code.**
@@ -388,6 +1230,20 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-2-1
 
+# lab 7 question 3
+
+rescale_01 <- function(vec) {
+  # input validation
+  case_when(
+    !is.numeric(vec) ~ "inputted vector is not a numeric data type.",
+    length(vec) <= 1 ~ "inputted vector must contain more than one element."
+  )
+
+  range_val <- range(vec, na.rm = TRUE)
+  # range_val[1] = min, range_val[2] = max
+  rescaled <- (vec - range_val[1]) / (range_val[2] - range_val[1])
+  return(rescaled)
+}
 ```
 
 -   Function that operates on data frames
@@ -395,6 +1251,20 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-2-2
 
+# lab 7 question 8
+
+# sources:
+# https://chatgpt.com/share/673139f3-590c-8013-934d-40567b76d33c
+
+rescale_column <- function(df, cNames) {
+  # validation checking
+  stopifnot(is.data.frame(df), all(cNames %in% colnames(df)))
+
+  rescaled <- df |>
+    mutate(across(.cols = {{ cNames }}, .fns = ~ rescale_01(.x)))
+
+  return(rescaled)
+}
 ```
 
 **PE-3:I can use iteration to reduce repetition in my code.**
@@ -404,6 +1274,15 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-3-across
 
+# lab 7 question 1 (revised)
+# source: I asked an upperclassmen who took this class last year and they described in pretty great detail what to put in the across() function (it was verbal).
+
+df_fish |>
+  summarize(across(trip:species, list(~ sum(is.na(.x))))) |>
+  rename_with(~ str_remove(., "_1")) |>
+  kable(
+    caption = "Number of Missing Values by Column"
+  )
 ```
 
 -   `map()` function with **one** input (e.g., `map()`, `map_chr()`, `map_dbl()`, etc.)
@@ -411,6 +1290,30 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-3-map-1
 
+# lab 9 question 1
+randomBabies <- function(nBabies) {
+  # creating data set with baby and parent numbers
+  babyData <- tibble(
+    parent = 1:nBabies,
+    baby = sample(1:nBabies,
+      size = nBabies,
+      replace = FALSE
+    )
+  )
+
+  # counting number of properly returned babies
+  correctBabies <- babyData |>
+    filter(parent == baby) |>
+    nrow()
+
+  # returning number of correct babies
+  return(correctBabies)
+}
+
+results <- map_int(
+  .x = 1:10000,
+  .f = ~ randomBabies(nBabies = 4)
+)
 ```
 
 -   `map()` function with **more than one** input (e.g., `map_2()` or `pmap()`)
@@ -418,6 +1321,13 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-3-map-2
 
+# lab 9 question 6
+all_simulations <- grid |>
+  mutate(simulated_means = pmap(
+    .l = list(n = n, df = df),
+    .f = simulate_means
+  )) |>
+  unnest(simulated_means)
 ```
 
 **PE-4: I can use modern tools when carrying out my analysis.**
@@ -427,13 +1337,54 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-4-1
 
+# lab 5
+suspects <- get_fit_now_member |>
+  filter(str_starts(id, "48Z"), membership_status == "gold") |>
+  semi_join(get_fit_now_check_in, join_by("id" == "membership_id")) |>
+  left_join(person, by = c("person_id" = "id")) |>
+  left_join(drivers_license, join_by("license_id" == "id")) |>
+  filter(str_detect(plate_number, "H42W"), if_any(.cols = everything(), .fns = ~ !is.na(.x)))
+
+suspects
 ```
 
 -   I can connect a data wrangling pipeline into a `ggplot()`
 
 ```{r}
 #| label: pe-4-2
+#| fig-cap: "RBT: rainbow trout WBT: westslope cutthroat trout"
 
+# challenge 7
+calculate_cond_idx(df_fish) |>
+  group_by(year, species, trip) |>
+  summarize(mean_cond_idx = mean(condition_index, na.rm = TRUE), .groups = "drop") |>
+  ggplot(
+    aes(
+      x = year,
+      y = mean_cond_idx,
+      color = fct_reorder(
+        .f = species,
+        .x = mean_cond_idx,
+        .desc = TRUE
+      )
+    )
+  ) +
+  facet_wrap(~trip, labeller = as_labeller(function(trip) paste("Trip", trip))) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Mean Condition Index of Fish by Species",
+    x = "Year",
+    y = "",
+    color = "species"
+  ) +
+  theme(
+    aspect.ratio = 1,
+    axis.text.x = element_text(size = 8)
+  ) +
+  scale_x_continuous(limits = c(1988, 2006), breaks = (seq(1980, 2008, 2))) +
+  scale_color_manual(values = c("#68B893", "#FF7C68", "#007C74", "#F7D359"))
+# color palette based off animal crossing
 ```
 
 ## Data Simulation & Statisical Models
@@ -445,6 +1396,30 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dsm-1-1
 
+# lab 9 question 1
+randomBabies <- function(nBabies) {
+  # creating data set with baby and parent numbers
+  babyData <- tibble(
+    parent = 1:nBabies,
+    baby = sample(1:nBabies,
+      size = nBabies,
+      replace = FALSE
+    )
+  )
+
+  # counting number of properly returned babies
+  correctBabies <- babyData |>
+    filter(parent == baby) |>
+    nrow()
+
+  # returning number of correct babies
+  return(correctBabies)
+}
+
+results <- map_int(
+  .x = 1:10000,
+  .f = ~ randomBabies(nBabies = 4)
+)
 ```
 
 -   Example 2
@@ -452,6 +1427,13 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dsm-1-2
 
+# lab 9 question 6
+all_simulations <- grid |>
+  mutate(simulated_means = pmap(
+    .l = list(n = n, df = df),
+    .f = simulate_means
+  )) |>
+  unnest(simulated_means)
 ```
 
 **DSSM-2: I can conduct common statistical analyses in R.**
@@ -461,6 +1443,15 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dsm-2-1
 
+# lab 1 question 11
+# code for running the t-test with a 95% confidence level.
+# assuming unequal variance and two-sided alternative.
+t.test(len ~ supp,
+  data = ToothGrowth, mu = 0,
+  alternative = "two.sided",
+  conf.level = 0.95,
+  var.equal = FALSE
+)
 ```
 
 -   Example 2
@@ -468,11 +1459,16 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dsm-2-2
 
+# lab 4 question 8
+reg_mod1 <- lm(median_price ~ median_income, data = ca_with_median)
+summary(reg_mod1)
 ```
 
 ## Revising My Thinking
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
+
+  Throughout the course, I have revised my thinking throughout this portfolio as well as in other assignments. For smaller comments, I have revised them here and on the midterm portfolio. An example where I received a complete on a part of a lab but wanted to extend my thinking would be changing the gt table function from a number format to a percent format which improves the clarity of the table. While I may have not submitted complete revisions on labs, I believe that taking the time to thoroughly understand the feedback left by my peers and professor helps build the intuition to write more efficient code, which I believe I have demonstrated through the revisions here by leaving thorough comments where applicable, explaining why I made those changes (for the new revisions made on this portfolio, some comments may say revised but were revised on the midterm portfolio).
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -480,8 +1476,23 @@ I've done this in the following provided assignments:
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
+Many of the graphs I have shown in this portfolio demonstrate a strong understanding in the grammar of graphics as well as some exploration in other visualization functions from the ggplot or gt packages, such as exploring various manual scaling functions for colors or formats for axes and cells. Not only did I explore these visual changes but also in styling and code formatting. As mentioned earlier, I used a linting package to help me maintain a consistent style in my code. This wasn't even covered in the course, but I figured that R has to have a linter like other programming languages and they're convenient. The main thing that styler is helpful for (or any linter) is removing or adding blankspaces that would otherwise not be caught since we humans can't really see those. While it is good practice to write the code in the style by hand, there are smaller inconsistencies that we may not catch when writing. 
 ## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
+Description of peer review from lab 5:
+
+Praise regarding use of new content and continuing to implement old content as well as a praise for organization.
+
+Suggesting to improve code efficiency by combining two objects into one pipeline to minimize the number of objects in the environment.
+
+Another suggestion regarding objects to improve code efficiency by removing unnecessary saving of pipelines as objects when the purpose of the pipeline is just to get one output and not use it in future code cells.
+
+A general note to cut down on unnecessary tags.
+
+"Overall, your code is really clean and easy to read and follow your logic with how you indented and when you started a new line so I appreciated that!"
+
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
+
+I have grown as a collaborator through the weekly pair programmings by becoming a better communicator using specific language to describe my thought process and verbalize my thought process when trying to debug code if needed. Especially when it came to functions and the Christmas song practice activity, my partner and I engaged in a meaningful conversation, exchanging what we know about English grammar rules and how to modify from singular to plural. I know that on the midterm portfolio, this was an area that was a struggle since I was not standing for myself and since then, I have made attempts to take more initiative, which has helped as we got our task done quickly and effectively. Working with the same partner for longer than just one activity also helped in my opinion with this since it established that we would be collaborating more than just once. 

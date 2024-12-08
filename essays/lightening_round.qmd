@@ -6,16 +6,19 @@ editor: visual
 
 **Answer each of the following questions with *one sentence* including a brief explanation.**
 
-1. Finish the sentence with another student’s name: "If [Name of Student] doesn’t earn an A, then nobody should, because..." Explain your choice and your reasoning.
+1.  Finish the sentence with another student’s name: "If \[Name of Student\] doesn’t earn an A, then nobody should, because..." Explain your choice and your reasoning.
 
+    Respectfully, I think this question could be reworded. As you have stated, the purpose of ungrading is to learn and grow independently, but from one another as well. The assumption is that we are trying our best given our unique circumstances, and as peers, we only know a fraction of a person's life. Regardless, everyone demonstrates their knowledge of content differently, whether that be through the code that they have not shared with peers or have verbally demonstrated their knowledge in the intuition verbally, but not efficiently in their code. It is not fair to compare one another based off of small interactions and biases we may have for or against others in the class.
 
-2. What was the most difficult part of the class for you? List a general topic, a specific problem, a kind of work we did, etc. and explain why.
+    Rather, based on how I have collaborated with my peers, I believe that Matteo and Sylvia deserve an A. When working with Matteo during peer collaboration activities, we stuck to our roles and communicated clearly and effectively our thoughts and did not discourage one other from raising our hands to ask for help when we were stuck or had other questions to help us both better understand the code even if it ran, looking for that efficiency especially in functions. He has had a strong grasp on the content when we were working together and I appreciate that we would engage in conversations that helped me understand any misunderstandings I have. Sylvia and I worked together outside of class, and I believe we had varying approaches to the labs, particularly lab 5 where we were given more of that freedom. When laying out how to approach the problem, the ideas she communicated helped me ultimately better understand the pipeline to get to the final suspect.\
+    Both have very tidy code, with properly formatted dplyr pipelines and appropriate variable names as well as proper indentations.
 
+2.  What was the most difficult part of the class for you? List a general topic, a specific problem, a kind of work we did, etc. and explain why.\
+    \
+    I think the most difficult part of the class was trying to use the forcats package. At first, it felt like there is no difference between a factor and a string, so why not just filter by string? However, as we see in lab 4, there are practical uses such as `fct_reorder()` to reorder legends of a graph which make it easier for the viewer to distinguish which lines correspond to what factor. The whole purpose of factors is 
 
-3. What was the easiest part of the class for you? Explain why.
+3.  What was the easiest part of the class for you? Explain why.
 
+4.  What part of the class surprised or interested you the most? Explain why.
 
-4. What part of the class surprised or interested you the most? Explain why.
-
-
-5. Give one piece of advice to a student just beginning a quarter of STAT 331 that will help them be successful in learning.
+5.  Give one piece of advice to a student just beginning a quarter of STAT 331 that will help them be successful in learning.
