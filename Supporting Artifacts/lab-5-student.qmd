@@ -1,0 +1,237 @@
+---
+title: "Lab 5: Murder in SQL City"
+author: "Emi Degembe"
+format: html
+editor: source
+embed-resources: true
+code-fold: true 
+code-tools: true
+theme: "darkly"
+messages: true
+---
+
+For this lab, you will be joining and filtering related datasets to solve a murder mystery!
+
+## Instructions
+
+Northwestern University's Knight Lab wanted to help sharpen users' database skills, so they created a murder mystery. Can you solve this crime in SQL City??
+
+The relational data you will be working with contains tables with different pieces of information pertinent to the crime - people, social media check-ins, driver's licenses, crime scene reports, police interviews, and more!
+
+![Database schema](https://mystery.knightlab.com/schema.png)
+
+Solve the murder mystery, showing **all of your work in this document**. Your document and code must be well organized, easy to follow, and reproducible.
+
++ Use headers and written descriptions to indicate what you are doing.
++ Use `dplyr` verbs and `join` functions rather than just looking through the tables manually.
++ Use good code formatting practices.
++ Comment your code.
++ Cite any external sources you use to solve the mystery.
+
+### Tips 
+
+You may find the `pull()` function handy for displaying each clue as you go along.
+
+
+## Access the Data
+
+This code chunk will read in all of the tables of data for you. Don't modify or remove this!
+
+```{r}
+#| message: false
+#| warning: false
+#| label: read-in-data
+
+library(tidyverse)
+
+# If purrr is not detected, install the package
+if (!"purrr" %in% installed.packages()) install.packages("purrr")
+
+source("https://raw.githubusercontent.com/atheobold/groupworthy-data-science/main/labs/instructions/lab-5-setup.R")
+```
+
+## Solve the Crime
+
+### Crime Scene Report
+
+Detective Wickham reaches out to you...
+
+> A crime has taken place and I need your help! There was a murder in SQL City sometime on January 15, 2018. Could you retrieve the crime scene report from the police department’s database and follow the clues to find the person responsible for the murder?!
+
+**Follow the evidence to the person responsible for the murder, building a report as you go.**
+Hint: Make sure you check for interviews with any suspects!
+
+```{r}
+#| label: inspecting-crime-scene-report
+
+#sorting the crime scene report for just data from 01.15.2018 in SQL City, keeping the date a double for now...
+#also selecting the description to get a better hint
+crime_scene_report |>
+      mutate(date = ymd(date)) |>
+      filter(city == "SQL City", type == "murder",date == "2018-01-15") |>
+      select(description)
+```
+Instead of searching by an integer for the date which is fine, it would be better to specify the date and utilize the datetime package. In the case there were other date inputs in the dataset, we could search for all the dates by converting them into a date and search from there. Issue is, datetime intakes strings, so I feel like here it would not have been the best choice since it would've been unnecessary time consumed at least in this case. 
+
+#### selecting the witnesses from 'person' 
+
+```{r}
+#| label: selecting-the-witnesses
+
+witnesses <- person |> #first witness criteria | second witness criteria
+             filter((address_street_name == "Northwestern Dr" & address_number == max(address_number)) |
+                    (str_detect(name, "Annabel") & address_street_name == "Franklin Ave"))
+
+witnesses
+```
+
+#### looking at their interviews
+```{r}
+#|label: checking-witnesses
+#using personid/id, join their interview information onto witness using a right join 
+
+witnesses |>
+      left_join(interview, by = c("id" = "person_id")) |>
+      pull(name, transcript)
+
+```
+
+What we know about the murderer currently:
+
+~~~~
+- (supposedly) they went to Annabel's gym on January 9 
+- Get Fit Now Gym membership number started with 48Z, gold member of gym
+- Car license plate contains 'H42W'
+~~~~
+
+#### Does Annabel go to Get Fit Now?
+```{r}
+#| label: Annabel-gym-check
+
+#selecting the 2nd row (Annabel's row) and checking if her name is in the member list of get fit now.
+str_detect(witnesses[2,]$name, str_subset(get_fit_now_member$name, "Annabel"))
+```
+#### Did Annabel go on January 9? 
+```{r}
+#| label: Annabel-Gym-Time
+
+#https://chatgpt.com/share/671e94f0-a1a0-8013-9445-77d9eafda394
+
+annabel_gym_checkin <- get_fit_now_member |>
+                       semi_join(witnesses, by = "name") |>
+                      inner_join(get_fit_now_check_in, by = c("id" = "membership_id"))
+
+annabel_gym_checkin
+```
+purpose of change: 
+
+Using a semi_join removes the need to filter and use a $ in the filter just to get the name, it also makes the code more readable. 
+
+since Annabel is a member of Get Fit Now, and did in fact check in on January 9, we also have the time she was there. This is useful information as we can narrow down who satisfies the following: 
+
+~~~~
+- Get Fit Now Membership id: starts with '48Z'
+- Get Fit Now Membership status: Gold
+- Was at Get Fit Now between 16:00 - 17:00
+- Was at Get Fit Now on January 9, 2018
+- Car License plate contains 'H42W'
+~~~~
+
+#### Using the information we know about Get Fit Now, narrow it down. 
+```{r}
+#|label: Get-Fit-Now-suspects
+#https://chatgpt.com/share/671f0318-e2d4-8013-adf9-b22360032e44
+
+#filtering the data
+suspects <- get_fit_now_member |>
+            filter(str_starts(id, "48Z"), membership_status == "gold") |> 
+            semi_join(get_fit_now_check_in, join_by("id" == "membership_id")) |>
+            left_join(person, by = c("person_id" = "id")) |>
+            left_join(drivers_license, join_by("license_id" == "id")) |>
+            filter(str_detect(plate_number, "H42W"), if_any(.cols = everything(), .fns = ~ !is.na(.x)))
+
+suspects
+
+```
+
+Prime suspect = Jeremy Bowers, but should check what he has to say...
+
+#### Suspect Interviews...
+```{r}
+#| label: interview-suspects
+
+interview |>
+      semi_join(suspects, by = "person_id") |>
+      pull(transcript)
+    
+```
+Purpose of change: 
+This was another good place to use semi_join, which id I'm being entirely honest am not too sure what the
+So from Jeremy, we got: 
+
+~~~~
+- income = high 
+- gender = female
+- hair color = red
+- height = 65-67, 
+- hair color = red, 
+- car make = Tesla
+- car model = Model S
+- Went to SQL Symphony concert 3 times in 12/2017 (201712--)
+~~~~
+
+#### Let's find that woman...
+```{r}
+#|label: finding-the-hirer
+
+#modified hair_color to be stored as a factor instead of a character:
+femaleSuspects <- drivers_license |>
+                  rename(license_id = id) |>
+                  mutate(hair_color = as.factor(hair_color)) |>
+                  filter(
+                         65 <= height & height <= 67, 
+                         hair_color == "red", 
+                         gender == "female", 
+                         car_make == "Tesla", 
+                         car_model == "Model S") |>
+                  left_join(person, by = "license_id") |>
+                  left_join(income, by = "ssn") |>
+                  select(id, name, annual_income)
+
+ finalSuspect <- facebook_event_checkin |>
+                   mutate(date = ymd(date)) |>
+                   filter(event_name == "SQL Symphony Concert", year(date) == 2017, month(date) == 12) |>
+                   group_by(person_id) |>
+                  summarize(checkIns = n()) |>
+                   right_join(femaleSuspects, join_by(person_id == id)) |>
+                   filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
+
+finalSuspect
+
+facebook_event_checkin |>
+    mutate(date = ymd(date)) |>
+    filter(event_name == "SQL Symphony Concert", month(date) == 12, year(date) == 2017) |>
+    group_by(person_id) |>
+    summarize(checkIns = n()) |>
+    right_join(femaleSuspects, join_by(person_id == id)) |>
+    filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
+```
+Modifying the license id' sid name to license_id makes it clearer to track which ID goes to where, so that when joining, there are no duplicate "id" column names that have two different meaning. Named arguments also allow us to better specify what we are trying to accomplish and overall increases clarity in the code. 
+
+So the full story: Miranda Priestly hired Jeremy Bowers to kill the person.The brain behind the murder is Miranda and the actual person who committed the murder is Jeremy. 
+
+#checking miranda 
+```{r}
+#|label: investigating miranda
+ 
+interview |>
+       semi_join(finalSus, by = "person_id") |>
+  select(transcript)
+```
+
+checking Miranda's interview ensures that there are no further steps required to take and they are our final suspect. 
+
+## And the final suspect is...
+
+*Miranda Priestly. Because there is no interview with Miranda, it suggests that there is no evidence to believe Miranda is not the killer. *
+

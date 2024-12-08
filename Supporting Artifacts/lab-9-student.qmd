@@ -1,0 +1,272 @@
+---
+title: "Lab 9: Data Simulation Exploration"
+author: "Emi Degembe"
+format: html
+editor: source
+embed-resources: true
+code-fold: true 
+code-tools: true
+theme: darkly
+message: true 
+warning: false
+---
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(gt)
+set.seed(727)
+```
+
+## Random Babies Simulation
+
+Perhaps you have seen the [Random Babies applet](https://www.rossmanchance.com/applets/2021/randombabies/RandomBabies.html)? 
+Suppose one night at a hospital four babies are born. The hospital is not very
+organized and looses track of which baby belongs to each parent(s), so they 
+decide to return the babies to parents at random. Here, we are interested in the
+number of babies that are correctly returned to their respective parent(s).
+
+**1. Simulate the distribution of the number of babies that are correctly returned. Use 10,000 simulations.**
+
+::: callout-tip
+Write a function to accomplish one simulation, then use `map_int()` to run
+10,000 simulations. 
+
+Keep in mind that your function needs to output a single number (not data frame) 
+for it to be compatible with `map_int()`!
+:::
+
+```{r}
+#| label: function-simulation-for-random-babies
+
+
+randomBabies <- function(nBabies){
+  #creating data set with baby and parent numbers
+  babyData <- tibble(
+                     parent = 1:nBabies, 
+                     baby = sample(1:nBabies, 
+                                   size = nBabies,
+                                   replace = FALSE))
+  
+  #counting number of properly returned babies
+  correctBabies <- babyData |>
+    filter(parent == baby) |>
+    nrow()
+  
+  #returning number of correct babies
+  return(correctBabies)
+}
+
+results <- map_int(.x = 1:10000,
+                   .f = ~ randomBabies(nBabies = 4)
+                   )
+```
+
+**2. Create a table displaying the proportion of simulations where 0, 1, 2, 3, and 4 babies were given to their correct parent(s).** Hint: A `pivot_wider()` will be helpful here!
+
+::: callout-tip
+The output of your `map_int()` is a vector, but to make a nice table (and plot) 
+you need this to be a data frame! Luckily, the `enframe()` function does just 
+that--it converts a vector to a data frame. 
+
+You may find the following code helpful:
+
+```{r}
+#| eval: false
+
+enframe(results, 
+        name = "simulation_number", 
+        value = "ncorrect")
+```
+:::
+
+```{r}
+#| label: table-for-random-babies
+
+#sources: 
+#help(enframe)
+#https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
+#https://chatgpt.com/share/6743b343-b76c-8013-a0ec-98085a996580
+
+dfResults <- enframe(results, name = "simulation_no", value = "nCorrect")
+
+realResults <- dfResults |>
+            count(nCorrect) |>
+            mutate(props = n / sum(n), 
+                   strCorrect = str_c(nCorrect, " babies")) |>
+             pivot_wider(names_from = strCorrect, 
+                         values_from = props) |>
+             select(-c(n, nCorrect)) |>
+             summarize(across(everything(), ~ first(na.omit(.))))
+
+realResults
+#challenge 9: spicing up the table 
+#reference table: https://rpubs.com/kaustav/table_contest_2020
+
+gt(realResults) |>
+  tab_header(
+    title = "Proportion of Babies Correctly Assigned per Simulation",
+    subtitle = "Simulation Results with n = 10000"
+  ) |>
+  opt_table_font(
+    font = google_font("Roboto Mono"),
+    size = px(14)
+  ) |>
+  tab_style(
+    style = cell_fill(
+      color = "lightblue3"
+    ),
+      locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_text(
+      color = "steelblue4"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_borders(sides = "all",
+                         color = "black",
+                         weight = px(1)),
+    locations = cells_body()
+  ) |>
+  fmt_number(
+    columns = everything(),
+    decimals = 2
+  ) |>
+  tab_options(
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.color = "black"
+  )
+
+ 
+```
+
+**3. Now create a barplot showing the proportion of simulations where 0, 1, 2, 3, and 4 babies were given to their correct parent(s).** 
+
+::: callout-tip
+You may find the following code helpful:
+
+```{r}
+#| eval: false
+
+geom_bar(mapping = aes(y = after_stat(count) / sum(after_stat(count))
+                       )
+         )
+```
+:::
+
+```{r}
+#| label: visualization-for-random-babies
+
+ggplot(dfResults, aes(x = as.factor(nCorrect))) + 
+  geom_bar(aes(y = after_stat(count) / sum(after_stat(count))), fill = "steelblue") + 
+  labs(
+    title = "Proportion of Simulations that Correctly Matched Baby to Parent", 
+    x = "Number of Correct Matches", 
+    y = ""
+  )
+```
+
+## Central Limit Theorem -- Optional & Somewhat Spicy
+
+You have encountered the Central Limit Theorem in your previous statistics 
+classes, whether or not is has been explicitly discussed. The Central Limit 
+Theorem states that: 
+
+> The sampling distribution of the mean will always be normally distributed, as
+> long as the sample size is large enough, regardless of the underlying 
+> distribution of the population. 
+
+Remember back to your first statistics class when you had to check if the 
+sample size was larger than 30 when testing if groups had different means? 
+That's because of the Central Limit Theorem! Under certain conditions 
+(e.g., sample size) the Central Limit Theorem ensures that the distribution 
+of sample means will be approximately Normal, regardless of how skewed the 
+underlying distribution of the population may be. 
+
+A fundamental misunderstanding of the Central Limit Theorem is that it states 
+that as a sample size gets larger, the population will be normally distributed. 
+This is not the case, so let's do some exploring!  
+
+**4. Write a function that simulates a specified number of sample means, for samples of size 100 drawn from a Chi-Squared distribution. Your function should allow the user to input:**
+
+- **the number of means to simulate**
+- **the degrees of freedom of the Chi-Squared distribution used to simulate data** 
+
+I've provided some skeleton code to get you started. :) 
+
+```{r}
+simulate_means <- function(n, df){
+  map_dbl(.x = 1:n, 
+          .f = ~rchisq(n = 100, df = df) %>% mean()
+          )
+}
+```
+
+**5. Next, let's use the `crossing()` function to make a grid with inputs we want to pass into the `simulate_means()` function. Specifically, we want to explore the following values:**
+
+-  **`n` = 10, 100, 1000, 10000**
+-  **`df` = 10**
+
+```{r}
+grid <- crossing(n = c(10, 100, 1000, 10000), 
+                 df = 10)
+```
+
+**6. Now, use a `p_map()` to create a new column of simulated means (using the `simulate_means()` function), for every value in your `grid`.**
+
+::: {.callout-tip}
+You will want to use the `unnest()` function to extract the results of the
+`p_map()` (stored in the `simulated_means` column). 
+:::
+
+```{r}
+all_simulations <- grid |> 
+  mutate(simulated_means = pmap(.l = list(n = n, df = df), 
+                                .f = simulate_means)
+         ) |> 
+  unnest(simulated_means) 
+
+```
+
+**7. Create a table of the means from each of the simulations (10, 100, 1000, and 10000).** 
+Hint: Make sure your columns have descriptive names!
+
+```{r}
+#| label: table-of-simulated Means
+
+all_simulations |>
+  group_by(n) |>
+  summarise(meanOfMeans = mean(simulated_means), .groups = "drop")
+```
+
+**8. Create a plot showing the distribution of simulated means from each of the simulations. Each simulation (10, 100, 1000, and 10000) should be its own facet!**
+Hint: Make sure your facets have descriptive names! You might also want to free
+the y-axis of the plots, since there are substantial differences in the sample
+sizes between the simulations. 
+
+**For extra pizzaz, add a vertical line for true mean (for a Chi-Square the mean is the degrees of freedom).**
+
+```{r}
+#| label: plot-of-simulated Means
+
+#sources:
+#https://www.sthda.com/english/wiki/ggplot2-add-straight-lines-to-a-plot-horizontal-vertical-and-regression-lines
+ggplot(all_simulations, aes(x = simulated_means)) + 
+  geom_histogram(binwidth = 0.25, fill = "steelblue", color = "black") + 
+  facet_wrap(~ n, scales = "free_y") + 
+  geom_vline(xintercept = 10, color = "red") + 
+  labs(
+    title = "Histograms of Simulated Means based on Number of Simulations", 
+    x = "simulated Means",
+    y = ""
+  )
+```
+
+## Challenge 9
+
+Instructions for the challenge can be found on the course website or through 
+the link in Canvas! 
+
