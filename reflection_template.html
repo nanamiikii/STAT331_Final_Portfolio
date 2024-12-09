@@ -3165,13 +3165,14 @@ vertical-align: -.125em;
 <li>numeric</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lab 5 (old original submission) : filter(checkIns == 3)</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>facebook_event_checkin <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(event_name <span class="sc">==</span> <span class="st">&quot;SQL Symphony Concert&quot;</span>, <span class="fu">str_starts</span>(date, <span class="st">&quot;201712&quot;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(person_id) <span class="sc">|&gt;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">checkIns =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(findingFemales, <span class="at">by =</span> <span class="st">&quot;person_id&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(checkIns <span class="sc">==</span> <span class="dv">3</span>, <span class="fu">if_all</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="sc">!</span><span class="fu">is.na</span>(.)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lab 5 (old original submission)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># looking at filter(checkIns = 3)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>facebook_event_checkin <span class="sc">|&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(event_name <span class="sc">==</span> <span class="st">&quot;SQL Symphony Concert&quot;</span>, <span class="fu">str_starts</span>(date, <span class="st">&quot;201712&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(person_id) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">checkIns =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(findingFemales, <span class="at">by =</span> <span class="st">&quot;person_id&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(checkIns <span class="sc">==</span> <span class="dv">3</span>, <span class="fu">if_all</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="sc">!</span><span class="fu">is.na</span>(.)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>character – specifically a string (example must use functions from <strong>stringr</strong>)</li>
@@ -3220,8 +3221,8 @@ vertical-align: -.125em;
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># lab 5</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># I revised this code to change the data datatype so the month and year could be called.</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># This may not necessarily be more efficient because the tables were</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># well formatted, but in other cases, </span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># this could be more efficient when the month and year are not next to each other and/or if </span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># well formatted, but in other cases,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># this could be more efficient when the month and year are not next to each other and/or if</span></span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># the dates are in various formats.</span></span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># findingFemales was renamed to femaleSuspects to improve clarity on what</span></span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># that table is</span></span>
@@ -3272,8 +3273,8 @@ vertical-align: -.125em;
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lab 9 question 2</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># This code has been revised, so there is a new variable created named</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># str correct, which removed the need for the names_glue function, </span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># reducing the need for an additional background process so overall, </span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># str correct, which removed the need for the names_glue function,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># reducing the need for an additional background process so overall,</span></span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># more efficient.</span></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># sources:</span></span>
@@ -3322,8 +3323,8 @@ vertical-align: -.125em;
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lab 5</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># I revised this code to change the data datatype so the month and year could be called.</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># This may not necessarily be more efficient because the tables were</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># well formatted, but in other cases, </span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># this could be more efficient when the month and year are not next to each other and/or if </span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># well formatted, but in other cases,</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># this could be more efficient when the month and year are not next to each other and/or if</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># the dates are in various formats.</span></span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># findingFemales was renamed to femaleSuspects to improve clarity on what</span></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co"># that table is</span></span>
@@ -3403,25 +3404,29 @@ vertical-align: -.125em;
 <li><code>anti_join()</code></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">#lab 5 (modified)</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">#combining this all into one without the need for an object, also just less lines</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># to get to the final suspect by using the joins more efficiently. </span></span>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lab 5 (modified)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co"># combining this all into one without the need for an object, also just less lines</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># to get to the final suspect by using the joins more efficiently.</span></span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>facebook_event_checkin <span class="sc">|&gt;</span></span>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">ymd</span>(date)) <span class="sc">|&gt;</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(event_name <span class="sc">==</span> <span class="st">&quot;SQL Symphony Concert&quot;</span>, </span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>         <span class="fu">year</span>(date) <span class="sc">==</span> <span class="dv">2017</span>, </span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>         <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span>) <span class="sc">|&gt;</span></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(person_id) <span class="sc">|&gt;</span></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">==</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(person, <span class="fu">join_by</span>(person_id <span class="sc">==</span> id)) <span class="sc">|&gt;</span></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(drivers_license, <span class="fu">join_by</span>(license_id <span class="sc">==</span> id)) <span class="sc">|&gt;</span></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(height <span class="sc">&gt;=</span> <span class="dv">65</span> <span class="sc">&amp;</span> height <span class="sc">&lt;=</span> <span class="dv">67</span>, </span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>         hair_color <span class="sc">==</span> <span class="st">&quot;red&quot;</span>, </span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>         gender <span class="sc">==</span> <span class="st">&quot;female&quot;</span>, </span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>         car_make <span class="sc">==</span> <span class="st">&quot;Tesla&quot;</span>, </span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>         car_model <span class="sc">==</span> <span class="st">&quot;Model S&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(interview, <span class="fu">join_by</span>(person_id <span class="sc">==</span> person_id)) <span class="sc">|&gt;</span></span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(person_id, name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    event_name <span class="sc">==</span> <span class="st">&quot;SQL Symphony Concert&quot;</span>,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">year</span>(date) <span class="sc">==</span> <span class="dv">2017</span>,</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(person_id) <span class="sc">|&gt;</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">==</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(person, <span class="fu">join_by</span>(person_id <span class="sc">==</span> id)) <span class="sc">|&gt;</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(drivers_license, <span class="fu">join_by</span>(license_id <span class="sc">==</span> id)) <span class="sc">|&gt;</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    height <span class="sc">&gt;=</span> <span class="dv">65</span> <span class="sc">&amp;</span> height <span class="sc">&lt;=</span> <span class="dv">67</span>,</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    hair_color <span class="sc">==</span> <span class="st">&quot;red&quot;</span>,</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    gender <span class="sc">==</span> <span class="st">&quot;female&quot;</span>,</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    car_make <span class="sc">==</span> <span class="st">&quot;Tesla&quot;</span>,</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    car_model <span class="sc">==</span> <span class="st">&quot;Model S&quot;</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(interview, <span class="fu">join_by</span>(person_id <span class="sc">==</span> person_id)) <span class="sc">|&gt;</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(person_id, name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>WD-7: I can pivot dataframes from long to wide and visa versa</strong></p>
 <ul>
@@ -4461,7 +4466,7 @@ vertical-align: -.125em;
 <section id="extending-my-thinking" class="level2">
 <h2 class="anchored" data-anchor-id="extending-my-thinking">Extending My Thinking</h2>
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
-<p>Many of the graphs I have shown in this portfolio demonstrate a strong understanding in the grammar of graphics as well as some exploration in other visualization functions from the ggplot or gt packages, such as exploring various manual scaling functions for colors or formats for axes and cells. I am especially proud of my plot in challenge 7, where I demonstrated by ability to reorder the legends by a factor and use my own color palette inspired by Animal Crossing which shows creativity because when I think fish, I think about how there’s always a fishing game in most games, but I really enjoy fishing in Animal Crossing.<br>
+<p>Many of the graphs I have shown in this portfolio demonstrate a strong understanding in the grammar of graphics as well as some exploration in other visualization functions from the ggplot or gt packages, such as exploring various manual scaling functions for colors or formats for axes and cells. I am especially proud of my plot in challenge 7, where I demonstrated by ability to reorder the legends by a factor and use my own color palette inspired by Animal Crossing which shows creativity because when I think fish, I think about how there’s always a fishing game in most games, but I really enjoy fishing in Animal Crossing. For the table using the gt package, I wanted to use my personal favorite font, which is a sans script font and in general easier to read.<br>
 Not only did I explore these visual changes but also in styling and code formatting. As mentioned earlier, I used a linting package to help me maintain a consistent style in my code. This wasn’t even covered in the course, but I figured that R has to have a linter like other programming languages and they’re convenient. The main thing that styler is helpful for (or any linter) is removing or adding blankspaces that would otherwise not be caught since we humans can’t really see those. While it is good practice to write the code in the style by hand, there are smaller inconsistencies that we may not catch when writing. ## Peer Support &amp; Collaboration</p>
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 <p>Description of peer review from lab 5:</p>
@@ -4471,7 +4476,7 @@ Not only did I explore these visual changes but also in styling and code formatt
 <p>A general note to cut down on unnecessary tags.</p>
 <p>“Overall, your code is really clean and easy to read and follow your logic with how you indented and when you started a new line so I appreciated that!”</p>
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
-<p>I have grown as a collaborator through the weekly pair programmings by becoming a better communicator using specific language to describe my thought process and verbalize my thought process when trying to debug code if needed. Especially when it came to functions and the Christmas song practice activity, my partner and I engaged in a meaningful conversation, exchanging what we know about English grammar rules and how to modify from singular to plural. When it came to the code, we used outI know that on the midterm portfolio, this was an area that was a struggle since I was not standing for myself and since then, I have made attempts to take more initiative, which has helped as we got our task done quickly and effectively. Working with the same partner for longer than just one activity also helped in my opinion with this since it established that we would be collaborating more than just once.</p>
+<p>I have grown as a collaborator through the weekly pair programmings by becoming a better communicator using specific language to describe my thought process and verbalize my thought process when trying to debug code if needed. Especially when it came to functions and the Christmas song practice activity, my partner and I engaged in a meaningful conversation, exchanging what we know about English grammar rules and how to modify from singular to plural. When it came to the code, we used outI know that on the midterm portfolio, this was an area that was a struggle since I was not standing for myself and since then, I have made attempts to take more initiative, which has helped as we got our task done quickly and effectively. Working with the same partner for longer than just one activity also helped in my opinion with this since it established that we would be collaborating more than just once. I also have used discord (granted more recently) to ask and answer questions that me or my peers may have particularly regarding this portfolio.</p>
 </section>
 
 </main>
