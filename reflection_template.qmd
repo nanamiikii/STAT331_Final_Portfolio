@@ -141,10 +141,26 @@ femaleSuspects <- drivers_license |>
 
 # from lab 5 (revised)
 
-crime_scene_report |>
+# lab 5
+# I revised this code to change the data datatype so the month and year could be called.
+# This may not necessarily be more efficient because the tables were
+# well formatted, but in other cases, 
+# this could be more efficient when the month and year are not next to each other and/or if 
+# the dates are in various formats.
+# findingFemales was renamed to femaleSuspects to improve clarity on what
+# that table is
+
+facebook_event_checkin |>
   mutate(date = ymd(date)) |>
-  filter(city == "SQL City", type == "murder", date == "2018-01-15") |>
-  select(description)
+  filter(
+    event_name == "SQL Symphony Concert",
+    month(date) == 12,
+    year(date) == 2017
+  ) |>
+  group_by(person_id) |>
+  summarize(checkIns = n()) |>
+  right_join(femaleSuspects, join_by(person_id == id)) |>
+  filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
 ```
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -332,7 +348,25 @@ annabel_gym_checkin
 ```{r}
 #| label: wd-6-anti
 
-# no response
+#lab 5 (modified)
+#combining this all into one without the need for an object, also just less lines
+# to get to the final suspect by using the joins more efficiently. 
+facebook_event_checkin |>
+  mutate(date = ymd(date)) |>
+  filter(event_name == "SQL Symphony Concert", 
+         year(date) == 2017, 
+         month(date) == 12) |>
+  count(person_id) |>
+  filter(n == 3) |>
+  left_join(person, join_by(person_id == id)) |>
+  left_join(drivers_license, join_by(license_id == id)) |>
+  filter(height >= 65 & height <= 67, 
+         hair_color == "red", 
+         gender == "female", 
+         car_make == "Tesla", 
+         car_model == "Model S") |>
+  anti_join(interview, join_by(person_id == person_id)) |>
+  select(person_id, name)
 ```
 
 **WD-7: I can pivot dataframes from long to wide and visa versa**
@@ -384,10 +418,9 @@ median_incomes <- ca_childcare |>
 
 **R-1: I can create professional looking, reproducible analyses using RStudio projects, Quarto documents, and the here package.**
 
-I've done this in the following provided assignments: 
+I've done this in the following provided assignments:
 
-Lab 9, 8, 7, 5, 4, 2
-Challenge 2, 7
+Lab 9, 8, 7, 5, 4, 2 Challenge 2, 7
 
 I am proud of my formatting in lab 5, but have demonstrated proper formatting in this portfolio as well, using the linting package **styler** to ensure that everything is formatted properly in the tidyverse style. [link](https://styler.r-lib.org/)
 
@@ -1468,7 +1501,7 @@ summary(reg_mod1)
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
 
-  Throughout the course, I have revised my thinking throughout this portfolio as well as in other assignments. For smaller comments, I have revised them here and on the midterm portfolio. An example where I received a complete on a part of a lab but wanted to extend my thinking would be changing the gt table function from a number format to a percent format which improves the clarity of the table. While I may have not submitted complete revisions on labs, I believe that taking the time to thoroughly understand the feedback left by my peers and professor helps build the intuition to write more efficient code, which I believe I have demonstrated through the revisions here by leaving thorough comments where applicable, explaining why I made those changes (for the new revisions made on this portfolio, some comments may say revised but were revised on the midterm portfolio).
+Throughout the course, I have revised my thinking throughout this portfolio as well as in other assignments. For smaller comments, I have revised them here and on the midterm portfolio. An example where I received a complete on a part of a lab but wanted to extend my thinking would be changing the gt table function from a number format to a percent format which improves the clarity of the table. While I may have not submitted complete revisions on labs, I believe that taking the time to thoroughly understand the feedback left by my peers and professor helps build the intuition to write more efficient code, which I believe I have demonstrated through the revisions here by leaving thorough comments where applicable, explaining why I made those changes (for the new revisions made on this portfolio, some comments may say revised but were revised on the midterm portfolio).
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -1476,8 +1509,7 @@ summary(reg_mod1)
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
-Many of the graphs I have shown in this portfolio demonstrate a strong understanding in the grammar of graphics as well as some exploration in other visualization functions from the ggplot or gt packages, such as exploring various manual scaling functions for colors or formats for axes and cells. Not only did I explore these visual changes but also in styling and code formatting. As mentioned earlier, I used a linting package to help me maintain a consistent style in my code. This wasn't even covered in the course, but I figured that R has to have a linter like other programming languages and they're convenient. The main thing that styler is helpful for (or any linter) is removing or adding blankspaces that would otherwise not be caught since we humans can't really see those. While it is good practice to write the code in the style by hand, there are smaller inconsistencies that we may not catch when writing. 
-## Peer Support & Collaboration
+Many of the graphs I have shown in this portfolio demonstrate a strong understanding in the grammar of graphics as well as some exploration in other visualization functions from the ggplot or gt packages, such as exploring various manual scaling functions for colors or formats for axes and cells. Not only did I explore these visual changes but also in styling and code formatting. As mentioned earlier, I used a linting package to help me maintain a consistent style in my code. This wasn't even covered in the course, but I figured that R has to have a linter like other programming languages and they're convenient. The main thing that styler is helpful for (or any linter) is removing or adding blankspaces that would otherwise not be caught since we humans can't really see those. While it is good practice to write the code in the style by hand, there are smaller inconsistencies that we may not catch when writing. \## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
@@ -1495,4 +1527,4 @@ A general note to cut down on unnecessary tags.
 
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
 
-I have grown as a collaborator through the weekly pair programmings by becoming a better communicator using specific language to describe my thought process and verbalize my thought process when trying to debug code if needed. Especially when it came to functions and the Christmas song practice activity, my partner and I engaged in a meaningful conversation, exchanging what we know about English grammar rules and how to modify from singular to plural. I know that on the midterm portfolio, this was an area that was a struggle since I was not standing for myself and since then, I have made attempts to take more initiative, which has helped as we got our task done quickly and effectively. Working with the same partner for longer than just one activity also helped in my opinion with this since it established that we would be collaborating more than just once. 
+I have grown as a collaborator through the weekly pair programmings by becoming a better communicator using specific language to describe my thought process and verbalize my thought process when trying to debug code if needed. Especially when it came to functions and the Christmas song practice activity, my partner and I engaged in a meaningful conversation, exchanging what we know about English grammar rules and how to modify from singular to plural. I know that on the midterm portfolio, this was an area that was a struggle since I was not standing for myself and since then, I have made attempts to take more initiative, which has helped as we got our task done quickly and effectively. Working with the same partner for longer than just one activity also helped in my opinion with this since it established that we would be collaborating more than just once.

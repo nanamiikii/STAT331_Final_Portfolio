@@ -148,7 +148,7 @@ suspects <- get_fit_now_member |>
             semi_join(get_fit_now_check_in, join_by("id" == "membership_id")) |>
             left_join(person, by = c("person_id" = "id")) |>
             left_join(drivers_license, join_by("license_id" == "id")) |>
-            filter(str_detect(plate_number, "H42W"), if_any(.cols = everything(), .fns = ~ !is.na(.x)))
+            filter(str_detect(plate_number, "H42W"), if_any(.cols = everything(), .fns = ~ !is.na(.x))) 
 
 suspects
 
@@ -185,36 +185,57 @@ So from Jeremy, we got:
 #|label: finding-the-hirer
 
 #modified hair_color to be stored as a factor instead of a character:
-femaleSuspects <- drivers_license |>
-                  rename(license_id = id) |>
-                  mutate(hair_color = as.factor(hair_color)) |>
-                  filter(
-                         65 <= height & height <= 67, 
-                         hair_color == "red", 
-                         gender == "female", 
-                         car_make == "Tesla", 
-                         car_model == "Model S") |>
-                  left_join(person, by = "license_id") |>
-                  left_join(income, by = "ssn") |>
-                  select(id, name, annual_income)
+# femaleSuspects <- drivers_license |>
+#                   rename(license_id = id) |>
+#                   mutate(hair_color = as.factor(hair_color)) |>
+#                   filter(
+#                          65 <= height & height <= 67, 
+#                          hair_color == "red", 
+#                          gender == "female", 
+#                          car_make == "Tesla", 
+#                          car_model == "Model S") |>
+#                   left_join(person, by = "license_id") |>
+#                   left_join(income, by = "ssn") |>
+#                   select(id, name, annual_income)
+# 
+#  finalSuspect <- facebook_event_checkin |>
+#                    mutate(date = ymd(date)) |>
+#                    filter(event_name == "SQL Symphony Concert", year(date) == 2017, month(date) == 12) |>
+#                    group_by(person_id) |>
+#                   summarize(checkIns = n()) |>
+#                    right_join(femaleSuspects, join_by(person_id == id)) |>
+#                    filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
+# 
+# finalSuspect
+# 
+# facebook_event_checkin |>
+#     mutate(date = ymd(date)) |>
+#     filter(event_name == "SQL Symphony Concert", month(date) == 12, year(date) == 2017) |>
+#     group_by(person_id) |>
+#     summarize(checkIns = n()) |>
+#     right_join(femaleSuspects, join_by(person_id == id)) |>
+#     filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
 
- finalSuspect <- facebook_event_checkin |>
-                   mutate(date = ymd(date)) |>
-                   filter(event_name == "SQL Symphony Concert", year(date) == 2017, month(date) == 12) |>
-                   group_by(person_id) |>
-                  summarize(checkIns = n()) |>
-                   right_join(femaleSuspects, join_by(person_id == id)) |>
-                   filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
-
-finalSuspect
-
+#final portfolio modification
+#combining this all into one without the need for an object, also just less lines
+# to get to the final suspect by using the joins more efficiently. 
 facebook_event_checkin |>
-    mutate(date = ymd(date)) |>
-    filter(event_name == "SQL Symphony Concert", month(date) == 12, year(date) == 2017) |>
-    group_by(person_id) |>
-    summarize(checkIns = n()) |>
-    right_join(femaleSuspects, join_by(person_id == id)) |>
-    filter(checkIns == 3, if_any(.cols = everything(), .fns = ~ !is.na(.)))
+  mutate(date = ymd(date)) |>
+  filter(event_name == "SQL Symphony Concert", 
+         year(date) == 2017, 
+         month(date) == 12) |>
+  count(person_id) |>
+  filter(n == 3) |>
+  left_join(person, join_by(person_id == id)) |>
+  left_join(drivers_license, join_by(license_id == id)) |>
+  filter(height >= 65 & height <= 67, 
+         hair_color == "red", 
+         gender == "female", 
+         car_make == "Tesla", 
+         car_model == "Model S") |>
+  anti_join(interview, join_by(person_id == person_id)) |>
+  select(person_id, name)
+  
 ```
 Modifying the license id' sid name to license_id makes it clearer to track which ID goes to where, so that when joining, there are no duplicate "id" column names that have two different meaning. Named arguments also allow us to better specify what we are trying to accomplish and overall increases clarity in the code. 
 
@@ -224,6 +245,7 @@ So the full story: Miranda Priestly hired Jeremy Bowers to kill the person.The b
 ```{r}
 #|label: investigating miranda
  
+#used the old code that is now commented out
 interview |>
        semi_join(finalSus, by = "person_id") |>
   select(transcript)
