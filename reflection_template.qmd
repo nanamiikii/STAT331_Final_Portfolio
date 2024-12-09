@@ -84,6 +84,7 @@ crime_scene_report |>
 #| label: wd-3-numeric
 
 # lab 5 (old original submission)
+# looking at filter(checkIns = 3)
 facebook_event_checkin |>
   filter(event_name == "SQL Symphony Concert", str_starts(date, "201712")) |>
   group_by(person_id) |>
@@ -144,8 +145,8 @@ femaleSuspects <- drivers_license |>
 # lab 5
 # I revised this code to change the data datatype so the month and year could be called.
 # This may not necessarily be more efficient because the tables were
-# well formatted, but in other cases, 
-# this could be more efficient when the month and year are not next to each other and/or if 
+# well formatted, but in other cases,
+# this could be more efficient when the month and year are not next to each other and/or if
 # the dates are in various formats.
 # findingFemales was renamed to femaleSuspects to improve clarity on what
 # that table is
@@ -201,8 +202,8 @@ df_fish |>
 # lab 9 question 2
 
 # This code has been revised, so there is a new variable created named
-# str correct, which removed the need for the names_glue function, 
-# reducing the need for an additional background process so overall, 
+# str correct, which removed the need for the names_glue function,
+# reducing the need for an additional background process so overall,
 # more efficient.
 
 # sources:
@@ -255,8 +256,8 @@ plot_childcare <- ca_childcare |>
 # lab 5
 # I revised this code to change the data datatype so the month and year could be called.
 # This may not necessarily be more efficient because the tables were
-# well formatted, but in other cases, 
-# this could be more efficient when the month and year are not next to each other and/or if 
+# well formatted, but in other cases,
+# this could be more efficient when the month and year are not next to each other and/or if
 # the dates are in various formats.
 # findingFemales was renamed to femaleSuspects to improve clarity on what
 # that table is
@@ -348,23 +349,27 @@ annabel_gym_checkin
 ```{r}
 #| label: wd-6-anti
 
-#lab 5 (modified)
-#combining this all into one without the need for an object, also just less lines
-# to get to the final suspect by using the joins more efficiently. 
+# lab 5 (modified)
+# combining this all into one without the need for an object, also just less lines
+# to get to the final suspect by using the joins more efficiently.
 facebook_event_checkin |>
   mutate(date = ymd(date)) |>
-  filter(event_name == "SQL Symphony Concert", 
-         year(date) == 2017, 
-         month(date) == 12) |>
+  filter(
+    event_name == "SQL Symphony Concert",
+    year(date) == 2017,
+    month(date) == 12
+  ) |>
   count(person_id) |>
   filter(n == 3) |>
   left_join(person, join_by(person_id == id)) |>
   left_join(drivers_license, join_by(license_id == id)) |>
-  filter(height >= 65 & height <= 67, 
-         hair_color == "red", 
-         gender == "female", 
-         car_make == "Tesla", 
-         car_model == "Model S") |>
+  filter(
+    height >= 65 & height <= 67,
+    hair_color == "red",
+    gender == "female",
+    car_make == "Tesla",
+    car_model == "Model S"
+  ) |>
   anti_join(interview, join_by(person_id == person_id)) |>
   select(person_id, name)
 ```
@@ -1509,7 +1514,8 @@ Throughout the course, I have revised my thinking throughout this portfolio as w
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
-Many of the graphs I have shown in this portfolio demonstrate a strong understanding in the grammar of graphics as well as some exploration in other visualization functions from the ggplot or gt packages, such as exploring various manual scaling functions for colors or formats for axes and cells. Not only did I explore these visual changes but also in styling and code formatting. As mentioned earlier, I used a linting package to help me maintain a consistent style in my code. This wasn't even covered in the course, but I figured that R has to have a linter like other programming languages and they're convenient. The main thing that styler is helpful for (or any linter) is removing or adding blankspaces that would otherwise not be caught since we humans can't really see those. While it is good practice to write the code in the style by hand, there are smaller inconsistencies that we may not catch when writing. \## Peer Support & Collaboration
+Many of the graphs I have shown in this portfolio demonstrate a strong understanding in the grammar of graphics as well as some exploration in other visualization functions from the ggplot or gt packages, such as exploring various manual scaling functions for colors or formats for axes and cells. I am especially proud of my plot in challenge 7, where I demonstrated by ability to reorder the legends by a factor and use my own color palette inspired by Animal Crossing which shows creativity because when I think fish, I think about how there's always a fishing game in most games, but I really enjoy fishing in Animal Crossing. For the table using the gt package, I wanted to use my personal favorite font, which is a sans script font and in general easier to read. \
+Not only did I explore these visual changes but also in styling and code formatting. As mentioned earlier, I used a linting package to help me maintain a consistent style in my code. This wasn't even covered in the course, but I figured that R has to have a linter like other programming languages and they're convenient. The main thing that styler is helpful for (or any linter) is removing or adding blankspaces that would otherwise not be caught since we humans can't really see those. While it is good practice to write the code in the style by hand, there are smaller inconsistencies that we may not catch when writing. \## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
@@ -1527,4 +1533,4 @@ A general note to cut down on unnecessary tags.
 
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
 
-I have grown as a collaborator through the weekly pair programmings by becoming a better communicator using specific language to describe my thought process and verbalize my thought process when trying to debug code if needed. Especially when it came to functions and the Christmas song practice activity, my partner and I engaged in a meaningful conversation, exchanging what we know about English grammar rules and how to modify from singular to plural. I know that on the midterm portfolio, this was an area that was a struggle since I was not standing for myself and since then, I have made attempts to take more initiative, which has helped as we got our task done quickly and effectively. Working with the same partner for longer than just one activity also helped in my opinion with this since it established that we would be collaborating more than just once.
+I have grown as a collaborator through the weekly pair programmings by becoming a better communicator using specific language to describe my thought process and verbalize my thought process when trying to debug code if needed. Especially when it came to functions and the Christmas song practice activity, my partner and I engaged in a meaningful conversation, exchanging what we know about English grammar rules and how to modify from singular to plural. When it came to the code, we used outI know that on the midterm portfolio, this was an area that was a struggle since I was not standing for myself and since then, I have made attempts to take more initiative, which has helped as we got our task done quickly and effectively. Working with the same partner for longer than just one activity also helped in my opinion with this since it established that we would be collaborating more than just once.
